@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/winter.mp3-d8fcc3345813cb175830c90c1ad30cbc.mp3str"
+
+[deps]
+
+source_file="res://assets/sound/winter.mp3"
+dest_files=[ "res://.import/winter.mp3-d8fcc3345813cb175830c90c1ad30cbc.mp3str" ]
+
+[params]
+
+loop=true
+loop_offset=0

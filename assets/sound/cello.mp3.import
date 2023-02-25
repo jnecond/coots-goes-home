@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/cello.mp3-72c5e69f27ca9cb820375337334fe0c7.mp3str"
+
+[deps]
+
+source_file="res://assets/sound/cello.mp3"
+dest_files=[ "res://.import/cello.mp3-72c5e69f27ca9cb820375337334fe0c7.mp3str" ]
+
+[params]
+
+loop=true
+loop_offset=0

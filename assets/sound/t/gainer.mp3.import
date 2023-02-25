@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/gainer.mp3-36017a637d443326d7444e01aa59fac8.mp3str"
+
+[deps]
+
+source_file="res://assets/sound/t/gainer.mp3"
+dest_files=[ "res://.import/gainer.mp3-36017a637d443326d7444e01aa59fac8.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

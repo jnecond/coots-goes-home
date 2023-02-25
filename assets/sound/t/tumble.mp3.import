@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/tumble.mp3-85b90d4f7813419419f1daad0a11d039.mp3str"
+
+[deps]
+
+source_file="res://assets/sound/t/tumble.mp3"
+dest_files=[ "res://.import/tumble.mp3-85b90d4f7813419419f1daad0a11d039.mp3str" ]
+
+[params]
+
+loop=false
+loop_offset=0

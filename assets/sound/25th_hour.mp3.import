@@ -1,0 +1,15 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+path="res://.import/25th_hour.mp3-36deaca7d174031b74a7a77a9cb06d9c.mp3str"
+
+[deps]
+
+source_file="res://assets/sound/25th_hour.mp3"
+dest_files=[ "res://.import/25th_hour.mp3-36deaca7d174031b74a7a77a9cb06d9c.mp3str" ]
+
+[params]
+
+loop=true
+loop_offset=0
