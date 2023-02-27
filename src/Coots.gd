@@ -774,12 +774,12 @@ func _ready():
 	start_idle();
 	
 	
-#	var cells = map.get_used_cells();
-#	for c in cells:
-#		var type = map.get_cellv(c);
-#		if (type >= 19 && type <= 22 
-#		&& (map.is_cell_x_flipped(c.x, c.y) || map.is_cell_y_flipped(c.x, c.y))):
-#			print("spikes at [ ", c, " ] are bugged");
+	var cells = map.get_used_cells();
+	for c in cells:
+		var type = map.get_cellv(c);
+		if (type >= 19 && type <= 22 
+		&& (map.is_cell_x_flipped(c.x, c.y) || map.is_cell_y_flipped(c.x, c.y))):
+			print("spikes at [ ", c, " ] are bugged");
 
 
 

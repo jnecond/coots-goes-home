@@ -4,7 +4,7 @@ var allow_input 	: int 	= 0;
 var played_frames 	: int 	= 0;
 var level			: int 	= 0;
 var deaths			: int 	= 0;
-var input_scheme	: int 	= 0;
+var input_scheme	: int 	= 1;
 var game_beaten		: int 	= 0;
 var checkpoint;
 var start_t;
@@ -254,7 +254,7 @@ func wrtkm(bloat, x, y) -> void:
 
 func show_keys() -> void:
 	wrtkm("ESC / START: EXIT TO MENU\nF1 / SELECT: INPUT SCHEME\n", 1, 1);
-	var ver = "V0,LUDJAM";
+	var ver = "V0,LUDJAM,2";
 	wrtkm(ver, 95-ver.length(), 37);
 	if (game_beaten):
 		wrtkm("SHIFT + F9:  MUSIC\nSHIFT + F10: PIANO SOUNDS\nSHIFT + F12: LEVEL SELECT", 1, 6);
@@ -328,9 +328,9 @@ func _physics_process(_delta: float) -> void:
 		input_scheme ^= 1;
 		match (input_scheme):
 			0:
-				notif_show("INPUT SCHEME: DEFAULT");
+				notif_show("INPUT SCHEME: CONDEMNED");
 			1:
-				notif_show("INPUT SCHEME: VERSION 2");
+				notif_show("INPUT SCHEME: DEFAULT");
 	notif_clear(0);
 	input_view();
 	
