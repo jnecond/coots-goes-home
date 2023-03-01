@@ -11,7 +11,7 @@ var start_t 		: int 	= 0;
 var stage_playedf 	: int 	= 0;
 
 
-const DEBUG = 0;
+const DEBUG = 1;
 
 
 
@@ -249,10 +249,14 @@ func wrtkm(bloat, x, y) -> void:
 
 func show_keys() -> void:
 	if (input_scheme == INPUT_SCHEME_CONDEMNED):
-		for i in range(0, 22):
+		for i in range(0, 30):
 			wrtkm("                                 ", 1, i);
+		if (DEBUG):
+			wrtkm("DEBUG", 45, 3);
 		return;
-		
+	
+	if (DEBUG):
+		wrtkm("DEBUG", 45, 3);
 	wrtkm("F2: FULLSCREEN", 1, 1);
 	var line = 5;
 	wrtkm("KEYBOARD:                                ", 1, line); line+=1;
