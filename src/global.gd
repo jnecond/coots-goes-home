@@ -7,7 +7,19 @@ var deaths			: int 	= 0;
 var input_scheme	: int 	= 1;
 var game_beaten		: int 	= 0;
 var checkpoint;
-var start_t;
+var start_t 		: int 	= 0;
+var stage_playedf 	: int 	= 0;
+
+
+const DEBUG = 0;
+
+
+
+
+enum {
+	INPUT_SCHEME_CONDEMNED,
+	INPUT_SCHEME_DEFAULT,
+}
 
 enum {
 	STATE_MENU,
@@ -122,38 +134,6 @@ func timestr(frames : int) -> String:
 		return "%d.%02d" % [ss, cc];
 
 
-func timer() -> void:
-	played_frames += 1;
-	if (!(played_frames & 1)):
-		if (played_frames >= 720000):
-			return;
-		if (played_frames == 12000):
-			tmtext("1:00,00", timer_end_pos_x-6, 1);
-			return;
-		var x : int = timer_end_pos_x;
-		var y : int = 1;
-		while (1):
-			match(x):
-				timer_end_pos_x_skip1:
-					x -= 1;
-				timer_end_pos_x_skip2:
-					x -= 1;
-			var i = dumb.get_cell(x, y);
-			var lt = 25;
-			if (x == (timer_end_pos_x-4)):
-				lt = 21;
-			if (i < lt): 
-				if (i < 17):
-					dumb.set_cell(x, y, 17);
-				else:
-					dumb.set_cell(x, y, i+1);
-				break;
-			else:
-				dumb.set_cell(x, y, 16);
-				x -= 1;
-	return;
-
-
 func reset_level() -> void:
 	match(level):
 		1: 
@@ -190,6 +170,10 @@ func cheat_next_level() -> void:
 
 func _ready() -> void:
 	Engine.set_target_fps(200);
+	if (DEBUG):
+		print("DEBUG: 1");
+		game_beaten = 1;
+		input_scheme = INPUT_SCHEME_CONDEMNED;
 	change_state(STATE_MENU);
 	show_keys();
 	piano_vol_db = vol_disabled;
@@ -197,8 +181,10 @@ func _ready() -> void:
 		i.set_volume_db(piano_vol_db);
 
 
+
 var endtext1 = "THANKS FOR PLAYING!";
 var endtextc = 0;
+
 
 
 func game_end() -> void:
@@ -210,11 +196,15 @@ func game_end() -> void:
 	else:
 		change_state(STATE_END);
 		game_beaten = 1;
+		
+	if (DEBUG):
+		start_t = 0;
+		change_state(STATE_END);
 
 
 func input_view() -> void:
 	if (Input.is_action_pressed("attack")):
-		tmtext("A", 93, 50);
+		tmtext("D", 93, 50);
 	else:
 		dumb.set_cell(93, 50, 0);
 	if (Input.is_action_pressed("jump")):
@@ -253,11 +243,33 @@ func wrtkm(bloat, x, y) -> void:
 
 
 func show_keys() -> void:
-	wrtkm("ESC / START: EXIT TO MENU\nF1 / SELECT: INPUT SCHEME\n", 1, 1);
+	if (input_scheme == INPUT_SCHEME_CONDEMNED):
+		for i in range(0, 22):
+			wrtkm("                                 ", 1, i);
+		#wrtkm("PRESS F1 TO USE THE DEFAULT CONTROLS.", 1, 1);
+		return;
+	var line = 2;
+	wrtkm("KEYBOARD:                                ", 1, line); line+=1;
+	wrtkm("ESC: EXIT TO MENU", 1, line); line+=1;
+	wrtkm("F1:  INPUT SCHEME", 1, line); line+=1;
+	wrtkm("Z: DASH (HOLD)", 1, line); line+=1;
+	wrtkm("X: JUMP*2", 1, line); line+=1;
+	
+	line+=3;
+	wrtkm("CONTROLLER:", 1, line); line+=1;
+	wrtkm("START:  EXIT TO MENU", 1, line); line+=1;
+	wrtkm("SELECT: INPUT SCHEME", 1, line); line+=1;
+	wrtkm("X: DASH (HOLD)", 1, line); line+=1;
+	wrtkm("A: JUMP*2", 1, line); line+=1;
+	
+	line += 3;
+	if (game_beaten):
+		wrtkm("SHIFT+F9:  MUSIC", 1, line); line+=1;
+		wrtkm("SHIFT+F10: PIANO SOUNDS", 1, line); line+=1;
+		wrtkm("SHIFT+F12: LEVEL SELECT", 1, line); line+=1;
+	
 	var ver = "V0,LUDJAM,2";
 	wrtkm(ver, 95-ver.length(), 37);
-	if (game_beaten):
-		wrtkm("SHIFT + F9:  MUSIC\nSHIFT + F10: PIANO SOUNDS\nSHIFT + F12: LEVEL SELECT", 1, 6);
 
 
 var keys_alpha = 1.0;
@@ -317,15 +329,112 @@ func notif_show(string) -> void:
 	tmtext(string, notif_x, notif_y);
 
 
-
-var guide_str = "EACH AIRMOVE CAN BE USED ONCE.    \nTHEY RESET AFTER TOUCHING THE GROUND\nOR BOUNCING OFF A WALL.";
+var guide_str_part1 = "EACH AIRMOVE CAN BE USED ONCE.    \nAIRMOVES RESET AFTER TOUCHING THE\nGROUND OR BOUNCING OFF A WALL.";
+var guide_str_default = "HOLD DOWN THE DASH BUTTON AFTER\nJUMPING TO ROLL FORWARD IN THE\nAIR AND BOUNCE OFF WALLS.";
+var guide_str_cond = "PRESS F1 TO USE THE DEFAULT CONTROLS.";
+var guide_part1_done = 0;
 var guide_c = 0;
 var guide_x = 0;
 var guide_y = 0;
+var guide_swap = 0;
+const guide_sx = 20;
+const guide_sy = 29;
+const guide_part2_sy = 29+8;
+
+
+func guide_full_clear():
+	var textmap = get_node("../Level1/textmap");
+	if (textmap):
+		for y in [guide_sy, guide_sy+2, guide_sy+4, guide_sy+8, guide_sy+10, guide_sy+12]:
+			for x in range(guide_sx, 71):
+				textmap.set_cell(x, y, 0);
+		guide_c = 0;
+		guide_x = guide_sx;
+		guide_y = guide_sy;
+		guide_part1_done = 0;
+
+
+func guide_clear_part2():
+	if (!guide_part1_done):
+		return;
+	var textmap = get_node("../Level1/textmap");
+	if (textmap):
+		for y in [guide_sy+8, guide_sy+10, guide_sy+12]:
+			for x in range(guide_sx, 71):
+				textmap.set_cell(x, y, 0);
+		guide_c = 0;
+		guide_x = guide_sx;
+		guide_y = guide_part2_sy;
+
+
+func guide_next_char() -> int:
+	var textmap = get_node("../Level1/textmap");
+	if (textmap):
+		var real;
+		if (!guide_part1_done):
+			real = guide_str_part1.to_ascii();
+		else:
+			match(input_scheme):
+					0:
+						if (guide_c >= guide_str_cond.length()):
+							return 0;
+						real = guide_str_cond.to_ascii();
+					1:
+						if (guide_c >= guide_str_default.length()):
+							return 0;
+						real = guide_str_default.to_ascii();
+		if (real[guide_c] == 10):
+			guide_y += 2;
+			guide_x = guide_sx;
+		else:
+			textmap.set_cell(guide_x, guide_y, real[guide_c]-32);
+			guide_x += 1;
+		guide_c += 1;
+	return 1;
+
+
+
+
+
+func timer() -> void:
+	played_frames += 1;
+	if (!(played_frames & 1)):
+		if (played_frames >= 720000):
+			return;
+		if (played_frames == 12000):
+			tmtext("1:00,00", timer_end_pos_x-6, 1);
+			return;
+		var x : int = timer_end_pos_x;
+		var y : int = 1;
+		while (1):
+			match(x):
+				timer_end_pos_x_skip1:
+					x -= 1;
+				timer_end_pos_x_skip2:
+					x -= 1;
+			var i = dumb.get_cell(x, y);
+			var lt = 25;
+			if (x == (timer_end_pos_x-4)):
+				lt = 21;
+			if (i < lt): 
+				if (i < 17):
+					dumb.set_cell(x, y, 17);
+				else:
+					dumb.set_cell(x, y, i+1);
+				break;
+			else:
+				dumb.set_cell(x, y, 16);
+				x -= 1;
+	return;
+
+
+
 
 func _physics_process(_delta: float) -> void:
 	if (Input.is_action_just_pressed("change_inputs")):
 		input_scheme ^= 1;
+		guide_swap = 1;
+		show_keys();
 		match (input_scheme):
 			0:
 				notif_show("INPUT SCHEME: CONDEMNED");
@@ -346,7 +455,7 @@ func _physics_process(_delta: float) -> void:
 				music[level].set_volume_db(music_vol_db);
 				music[level].play();
 			notif_show("MUSIC: ON ");
-
+	
 	if (Input.is_action_just_pressed("piano_toggle")):
 		if (piano_vol_db == music_vol_default):
 			piano_vol_db = vol_disabled;
@@ -356,7 +465,7 @@ func _physics_process(_delta: float) -> void:
 			notif_show("PIANO: ON ");
 		for i in piano:
 			i.set_volume_db(piano_vol_db);
-
+	
 	if (state != STATE_END):
 		if (Input.is_action_just_pressed("cheat_next_level")):
 				cheat = 1;
@@ -364,15 +473,20 @@ func _physics_process(_delta: float) -> void:
 					start_game();
 				else:
 					tmtext("      ", 45, 26);
+					tmtext("        ", 94-7, 1);
+					tmtext("        ", 94-7, 3);
+					tmtext("        ", 94-7, 5);
 					cheat_next_level();
 					return;
 		if (Input.is_action_just_pressed("reset")):
 			tmtext("        ", 94-7, 1);
+			tmtext("        ", 94-7, 3);
+			tmtext("        ", 94-7, 5);
 			change_state(STATE_MENU);
 			return;
 	if (state != STATE_MENU):
 		fadeout_keys();
-
+	
 	match(state):
 		STATE_MENU:
 			fadein_keys();
@@ -400,8 +514,10 @@ func _physics_process(_delta: float) -> void:
 				set_overlay_alpha(a);
 				if (state_frame == 70):
 					reset_level();
-					tmtext("        ", 94-7, 3);
 					tmtext("    0,00", 94-7, 1);
+					tmtext("        ", 94-7, 3);
+					tmtext("        ", 94-7, 5);
+					tmtext("        ", 94-7, 7);
 					if (music_vol_db != vol_disabled):
 						music[1].set_volume_db(music_vol_db);
 						music[1].play();
@@ -410,8 +526,9 @@ func _physics_process(_delta: float) -> void:
 					set_overlay_alpha(0);
 					change_state(STATE_IN_GAME);
 					checkpoint = 0
-					played_frames = 0
 					start_t = Time.get_ticks_msec();
+					played_frames = 0
+					stage_playedf = 0;
 					return;
 			else:
 				set_overlay_alpha(1.0);
@@ -421,28 +538,23 @@ func _physics_process(_delta: float) -> void:
 		STATE_IN_GAME:
 			match(level):
 				1:
-					if (state_frame == 100):
-						var textmap = get_node("../Level1/textmap");
-						if (textmap):
-							guide_c = 0;
-							guide_x = 21;
-							guide_y = 29;
-							for i in range(0, 37):
-								textmap.set_cell(guide_x+i, 29, 0);
-					elif (guide_c < guide_str.length() 
-					&& state_frame >= 600 && !(state_frame%12)):
-						var textmap = get_node("../Level1/textmap");
-						var real = guide_str.to_ascii();
-						if (textmap):
-							if (real[guide_c] == 10): #'\n'
-								guide_y += 2;
-								guide_x = 21;
-							else:
-								textmap.set_cell(guide_x, guide_y, real[guide_c]-32);
-								guide_x += 1;
-							guide_c += 1;
+					if (state_frame >= 100):
+						if (guide_swap):
+							guide_swap = 0;
+							if (guide_part1_done):
+								guide_clear_part2();
+						if (state_frame >= 600):
+							if (!(state_frame&7)):
+								guide_next_char();
+								if (guide_c >= guide_str_part1.length()):
+									guide_part1_done = 1;
+									guide_c = 0;
+									guide_x = guide_sx;
+									guide_y = guide_part2_sy;
+						elif (state_frame == 100):
+							guide_full_clear();
 				4:
-					if (state_frame == 500 && !cheat):
+					if (state_frame == 500 && (!cheat || DEBUG)):
 						var textmap = get_node("../Level4/textmap");
 						if (textmap):
 							var k;
@@ -469,7 +581,7 @@ func _physics_process(_delta: float) -> void:
 						if (music_vol_db != vol_disabled):
 							music[level].set_volume_db(music_vol_db);
 							music[level].play();
-						advancing_level = 0;
+						#advancing_level = 0;
 					allow_input = 0
 					bs = 1;
 					state_frame = 0
@@ -481,12 +593,16 @@ func _physics_process(_delta: float) -> void:
 							music[level-1].set_volume_db(vol - 0.15);
 			else:
 				if (state_frame == 150):
+					if (advancing_level):
+						advancing_level = 0;
+						stage_playedf = 0;
+						tmtext("        ", 94-7, 3);
 					if (cheat):
 						played_frames = 0;
-						tmtext("    0.00", 94-7, 1);
+						tmtext("    0,00", 94-7, 1);
 					set_overlay_alpha(0);
 					change_state(STATE_IN_GAME);
-					allow_input = 1
+					allow_input = 1;
 				else:
 					set_overlay_alpha(1.0 - float(state_frame) / 150.0);
 		STATE_END:
@@ -495,7 +611,6 @@ func _physics_process(_delta: float) -> void:
 				if (state_frame == 1):
 					var time2str = timestr((Time.get_ticks_msec() - start_t)/5);
 					tmtext(time2str, 95-time2str.length(), 3);
-					
 				if (!(state_frame & 7)):
 					var hmm = endtext1.substr(endtextc, 1);
 					tmtext(hmm, 38+endtextc, 24);
@@ -520,10 +635,22 @@ func _physics_process(_delta: float) -> void:
 					change_state(STATE_MENU);
 					show_keys();
 	state_frame += 1;
-	
 	if (state >= STATE_IN_GAME):
 		if (!cheat || state != STATE_LOADING):
 			timer();
+			if (!cheat 
+			&& (state != STATE_LOADING || !advancing_level)
+			):
+				stage_playedf += 1;
+				if (!(stage_playedf & 1)):
+					if (stage_playedf != played_frames):
+						var ts = timestr(stage_playedf);
+						tmtext(ts, 95-ts.length(), 3);
+
+
+
+
+
 
 
 

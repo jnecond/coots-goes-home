@@ -200,6 +200,7 @@ func start_airtumble_bounce():
 	else:
 		Global.snd_jump.play();
 
+
 func start_dive():
 	set_flip();
 	change_state(COOTS_DIVE);
@@ -576,19 +577,22 @@ func slide_frame():
 		1:
 			if (!Input.is_action_pressed("attack") && state_frame < slide_end_frame):
 				state_frame = slide_end_frame;
-	match (state_frame):
-		slide_start_frame: 
-			slide_sound();
-			sprites[COOTS_SLIDE].visible = 1;
-			sprites[COOTS_IDLE].visible = 0;
-			velocity.x = get_flip() * slide_vel;
-		slide_end_frame:
-			sprites[COOTS_SLIDE].visible = 0;
-			sprites[COOTS_IDLE].visible = 1;
-			velocity.x = get_flip() * slide_vel/2;
+
 	if (state_frame >= slide_stop_frame):
 		start_idle();
 		return;
+	elif (state_frame >= slide_end_frame):
+		sprites[COOTS_SLIDE].visible = 0;
+		sprites[COOTS_IDLE].visible = 1;
+		velocity.x = get_flip() * slide_vel/2;
+	elif (state_frame >= slide_start_frame):
+		if (state_frame == slide_start_frame):
+			slide_sound();
+		sprites[COOTS_SLIDE].visible = 1;
+		sprites[COOTS_IDLE].visible = 0;
+		velocity.x = get_flip() * slide_vel;
+		
+	
 
 
 func dead_frame():
@@ -705,6 +709,8 @@ func _physics_process(_delta: float):
 					position.x = camera.limit_left + 8;
 					if (state == COOTS_SLIDE):
 						state_frame = slide_start_frame+1;
+						sprites[COOTS_IDLE].visible = 0;
+						sprites[COOTS_SLIDE].visible = 1;
 					else:
 						state_frame = 0;
 					return;
@@ -772,14 +778,14 @@ func _ready():
 	velocity.x = 0;
 	velocity.y = 500;
 	start_idle();
-	
-	
-	var cells = map.get_used_cells();
-	for c in cells:
-		var type = map.get_cellv(c);
-		if (type >= 19 && type <= 22 
-		&& (map.is_cell_x_flipped(c.x, c.y) || map.is_cell_y_flipped(c.x, c.y))):
-			print("spikes at [ ", c, " ] are bugged");
+	if (Global.DEBUG):
+		var cells = map.get_used_cells();
+		for c in cells:
+			var type = map.get_cellv(c);
+			if (type >= 19 && type <= 22 
+			&& (map.is_cell_x_flipped(c.x, c.y) || map.is_cell_y_flipped(c.x, c.y) || map.is_cell_transposed(c.x, c.y)) 
+			):
+				print("spikes at [ ", c, " ] are bugged");
 
 
 
