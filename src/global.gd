@@ -190,21 +190,23 @@ var endtextc = 0;
 func game_end() -> void:
 	bs = 0;
 	endtextc = 0;
-	if (cheat):
+	if (cheat && !DEBUG):
 		checkpoint = 0;
 		change_state(STATE_LOADING);
 	else:
 		change_state(STATE_END);
 		game_beaten = 1;
 		
-	if (DEBUG):
-		start_t = 0;
-		change_state(STATE_END);
+
 
 
 func input_view() -> void:
 	if (Input.is_action_pressed("attack")):
-		tmtext("D", 93, 50);
+		match input_scheme:
+			INPUT_SCHEME_CONDEMNED:
+				tmtext("A", 93, 50);
+			INPUT_SCHEME_DEFAULT:
+				tmtext("D", 93, 50);
 	else:
 		dumb.set_cell(93, 50, 0);
 	if (Input.is_action_pressed("jump")):
@@ -609,8 +611,13 @@ func _physics_process(_delta: float) -> void:
 			overlay.visible = 1
 			if (!bs):
 				if (state_frame == 1):
+					for y in [5, 3]:
+						for x in range(86, 96):
+							var type = dumb.get_cell(x, y-2);
+							dumb.set_cell(x, y, type);
 					var time2str = timestr((Time.get_ticks_msec() - start_t)/5);
-					tmtext(time2str, 95-time2str.length(), 3);
+					tmtext(time2str, 95-time2str.length(), 1);
+					
 				if (!(state_frame & 7)):
 					var hmm = endtext1.substr(endtextc, 1);
 					tmtext(hmm, 38+endtextc, 24);
