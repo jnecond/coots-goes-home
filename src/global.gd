@@ -621,6 +621,8 @@ func _physics_process(_delta: float) -> void:
 				if (!(state_frame & 7)):
 					var hmm = endtext1.substr(endtextc, 1);
 					tmtext(hmm, 38+endtextc, 24);
+					if (state_frame > 40):
+						dumb.set_cell(80+endtextc, 5, 0);
 					endtextc += 1;
 				var a = float(state_frame) / 300.0;
 				if (a > 1.0): a = 1.0;
@@ -629,6 +631,7 @@ func _physics_process(_delta: float) -> void:
 				|| Input.is_action_just_pressed("reset")
 				|| Input.is_action_just_pressed("jump")
 				|| Input.is_action_just_pressed("attack")):
+					tmtext("        ", 94-7, 5);
 					tmtext(endtext1, 38, 24);
 					endtextc = 0;
 					bs = 1;
