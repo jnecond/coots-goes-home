@@ -179,7 +179,10 @@ func _ready() -> void:
 	piano_vol_db = vol_disabled;
 	for i in piano:
 		i.set_volume_db(piano_vol_db);
-
+	start_game();
+	reset_level();
+	tmtext("        ", 94-7, 1);
+	change_state(STATE_MENU);
 
 
 var endtext1 = "THANKS FOR PLAYING!";
@@ -248,21 +251,22 @@ func show_keys() -> void:
 	if (input_scheme == INPUT_SCHEME_CONDEMNED):
 		for i in range(0, 22):
 			wrtkm("                                 ", 1, i);
-		#wrtkm("PRESS F1 TO USE THE DEFAULT CONTROLS.", 1, 1);
 		return;
-	var line = 2;
+		
+	wrtkm("F2: FULLSCREEN", 1, 1);
+	var line = 5;
 	wrtkm("KEYBOARD:                                ", 1, line); line+=1;
-	wrtkm("ESC: EXIT TO MENU", 1, line); line+=1;
-	wrtkm("F1:  INPUT SCHEME", 1, line); line+=1;
-	wrtkm("Z: DASH (HOLD)", 1, line); line+=1;
-	wrtkm("X: JUMP*2", 1, line); line+=1;
+	wrtkm(" ESC: EXIT TO MENU", 1, line); line+=1;
+	wrtkm(" F1:  INPUT SCHEME", 1, line); line+=1;
+	wrtkm(" Z: DASH (HOLD)", 1, line); line+=1;
+	wrtkm(" X: JUMP*2", 1, line); line+=1;
 	
 	line+=3;
 	wrtkm("CONTROLLER:", 1, line); line+=1;
-	wrtkm("START:  EXIT TO MENU", 1, line); line+=1;
-	wrtkm("SELECT: INPUT SCHEME", 1, line); line+=1;
-	wrtkm("X: DASH (HOLD)", 1, line); line+=1;
-	wrtkm("A: JUMP*2", 1, line); line+=1;
+	wrtkm(" START:  EXIT TO MENU", 1, line); line+=1;
+	wrtkm(" SELECT: INPUT SCHEME", 1, line); line+=1;
+	wrtkm(" X: DASH (HOLD)", 1, line); line+=1;
+	wrtkm(" A: JUMP*2", 1, line); line+=1;
 	
 	line += 3;
 	if (game_beaten):
@@ -431,7 +435,6 @@ func timer() -> void:
 
 
 
-
 func _physics_process(_delta: float) -> void:
 	if (Input.is_action_just_pressed("change_inputs")):
 		input_scheme ^= 1;
@@ -467,6 +470,9 @@ func _physics_process(_delta: float) -> void:
 			notif_show("PIANO: ON ");
 		for i in piano:
 			i.set_volume_db(piano_vol_db);
+	
+	if (Input.is_action_just_pressed("fullscreen")):
+		OS.set_window_fullscreen(!OS.window_fullscreen);
 	
 	if (state != STATE_END):
 		if (Input.is_action_just_pressed("cheat_next_level")):
