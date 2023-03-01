@@ -11,7 +11,7 @@ var start_t 		: int 	= 0;
 var stage_playedf 	: int 	= 0;
 
 
-const DEBUG = 1;
+const DEBUG = 0;
 
 
 
